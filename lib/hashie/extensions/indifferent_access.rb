@@ -49,20 +49,6 @@ module Hashie
         end
       end
 
-      # This will inject indifferent access into an instance of
-      # a hash without modifying the actual class. This is what
-      # allows IndifferentAccess to spread to sub-hashes.
-      def self.inject!(hash)
-        (class << hash; self; end).send :include, IndifferentAccess
-        hash.convert!
-      end
-
-      # Injects indifferent access into a duplicate of the hash
-      # provided. See #inject!
-      def self.inject(hash)
-        inject!(hash.dup)
-      end
-
       def convert_key(key)
         key.to_s
       end
@@ -77,11 +63,14 @@ module Hashie
         self
       end
 
-      def convert_value(value)
-        if hash_lacking_indifference?(value)
-          IndifferentAccess.inject(value.dup)
-        elsif value.is_a?(::Array)
-          value.dup.replace(value.map { |e| convert_value(e) })
+      def convert_value(value) #:nodoc:
+        case value
+        when self.class
+          value.dup
+        when ::Hash
+          self.class[value]
+        when ::Array
+          value.map { |e| convert_value(e) }
         else
           value
         end
@@ -130,12 +119,6 @@ module Hashie
       end
 
       protected
-
-      def hash_lacking_indifference?(other)
-        other.is_a?(::Hash) &&
-        !(other.respond_to?(:indifferent_access?) &&
-          other.indifferent_access?)
-      end
 
       def hash_with_indifference?(other)
         other.is_a?(::Hash) &&
