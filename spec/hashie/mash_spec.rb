@@ -388,7 +388,7 @@ describe Hashie::Mash do
       expect(copy.address.__id__).not_to eq initial.address.__id__
     end
 
-    it 'accepts a default block' do
+    xit 'accepts a default block' do
       initial = Hashie::Mash.new { |h, i| h[i] = [] }
       expect(initial.default_proc).not_to be_nil
       expect(initial.default).to be_nil
